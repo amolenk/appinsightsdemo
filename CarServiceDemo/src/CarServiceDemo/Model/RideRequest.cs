@@ -7,7 +7,7 @@ namespace CarServiceDemo.Model
 {
     public class RideRequest
     {
-        public RideRequest(Guid customerId, Location startLocation, Location endLocation)
+        public RideRequest(string customerId, Location startLocation, Location endLocation)
         {
             CustomerId = customerId;
             StartLocation = startLocation;
@@ -17,7 +17,7 @@ namespace CarServiceDemo.Model
         /// <summary>
         /// Gets the unique customer id.
         /// </summary>
-        public Guid CustomerId { get; private set; }
+        public string CustomerId { get; private set; }
 
         /// <summary>
         /// Gets the pick-up location.

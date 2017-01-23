@@ -27,6 +27,10 @@ namespace CarServiceDemo
             var vehicle = GetVehicle();
             var eta = GetEta();
 
+            // For testing purposes, wait a little while to simulate some busy work.
+            // TODO Remove this before going to production. We'll definitely not forget this!
+            Task.Delay(Randomizer.Next(0, 1500)).GetAwaiter().GetResult();
+
             return new RideConfirmation(vehicle, eta);
         }
 

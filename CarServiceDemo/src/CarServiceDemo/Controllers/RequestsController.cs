@@ -28,6 +28,11 @@ namespace CarServiceDemo.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]RideRequest request)
         {
+            if (string.IsNullOrEmpty(request.CustomerId))
+            {
+                throw new ArgumentException("Customer id is missing.", "request");
+            }
+
             var confirmation = RideManager.BookRide(request);
 
             return Ok(confirmation);
