@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using CarServiceDemo.Model;
 
@@ -21,6 +22,7 @@ namespace CarServiceDemo
         };
 
         private static Random Randomizer = new Random();
+        private static HttpClient Client = new HttpClient();
 
         public static RideConfirmation BookRide(RideRequest request)
         {
@@ -36,6 +38,9 @@ namespace CarServiceDemo
 
         private static Vehicle GetVehicle()
         {
+            // Simulate call to another service to get vehicle.
+            Client.GetStringAsync("http://httpbin.org/status/200").GetAwaiter().GetResult();
+
             var make = ModelsByMake.Keys.ElementAt(Randomizer.Next(0, ModelsByMake.Count));
             var model = ModelsByMake[make][Randomizer.Next(0, ModelsByMake[make].Count)];
             var licenseNumber = "GOTMILK";
