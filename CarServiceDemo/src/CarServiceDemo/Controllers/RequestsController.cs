@@ -10,6 +10,13 @@ namespace CarServiceDemo.Controllers
     [Route("api/[controller]")]
     public class RequestsController : Controller
     {
+        private readonly RideManager _rideManager;
+
+        public RequestsController(RideManager rideManager)
+        {
+            _rideManager = rideManager;
+        }
+
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
@@ -28,12 +35,12 @@ namespace CarServiceDemo.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]RideRequest request)
         {
-            //if (string.IsNullOrEmpty(request.CustomerId))
-            //{
-            //    throw new ArgumentException("Customer id is missing.", "request");
-            //}
+            if (string.IsNullOrEmpty(request.CustomerId))
+            {
+                throw new ArgumentException("Customer id is missing.", "request");
+            }
 
-            var confirmation = RideManager.BookRide(request);
+            var confirmation = _rideManager.BookRide(request);
 
             return Ok(confirmation);
         }

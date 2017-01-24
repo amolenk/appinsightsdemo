@@ -27,6 +27,8 @@ namespace CarServiceDemo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<RideManager>(_ => new RideManager(Configuration.GetConnectionString("Storage")));
+
             // Add framework services.
             services.AddMvc();
             services.AddSwaggerGen();

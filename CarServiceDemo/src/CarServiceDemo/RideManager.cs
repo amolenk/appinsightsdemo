@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using CarServiceDemo.Model;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace CarServiceDemo
 {
@@ -21,36 +22,65 @@ namespace CarServiceDemo
             }
         };
 
-        private static Random Randomizer = new Random();
-        private static HttpClient Client = new HttpClient();
+        private readonly Random _randomizer;
+        private readonly CloudStorageAccount _storageAccount;
+        private readonly CloudTableClient _tableClient;
+        private readonly CloudTable _table;
 
-        public static RideConfirmation BookRide(RideRequest request)
+        public RideManager(string storageConnectionString)
+        {
+            _randomizer = new Random();
+            _storageAccount = CloudStorageAccount.Parse(storageConnectionString);
+            _tableClient = _storageAccount.CreateCloudTableClient();
+            _table = _tableClient.GetTableReference("Bookings");
+
+            _table.CreateIfNotExists();
+        }
+  
+        public RideConfirmation BookRide(RideRequest request)
         {
             var vehicle = GetVehicle();
             var eta = GetEta();
 
             // For testing purposes, wait a little while to simulate some busy work.
             // TODO Remove this before going to production. We'll definitely not forget this!
-            Task.Delay(Randomizer.Next(0, 1500)).GetAwaiter().GetResult();
+            Task.Delay(_randomizer.Next(0, 1500)).GetAwaiter().GetResult();
+
+            SaveBooking(request, vehicle.LicenseNumber);
 
             return new RideConfirmation(vehicle, eta);
         }
 
-        private static Vehicle GetVehicle()
+        private Vehicle GetVehicle()
         {
-            // Simulate call to another service to get vehicle.
-            Client.GetStringAsync("http://httpbin.org/status/200").GetAwaiter().GetResult();
-
-            var make = ModelsByMake.Keys.ElementAt(Randomizer.Next(0, ModelsByMake.Count));
-            var model = ModelsByMake[make][Randomizer.Next(0, ModelsByMake[make].Count)];
+            var make = ModelsByMake.Keys.ElementAt(_randomizer.Next(0, ModelsByMake.Count));
+            var model = ModelsByMake[make][_randomizer.Next(0, ModelsByMake[make].Count)];
             var licenseNumber = "GOTMILK";
 
             return new Vehicle(licenseNumber, make, model);
         }
 
-        private static int GetEta()
+        private int GetEta()
         {
-            return Randomizer.Next(1, 12);
+            return _randomizer.Next(1, 12);
+        }
+
+        private void SaveBooking(RideRequest request, string vehicleLicenseNumber)
+        {
+            var entity = new DynamicTableEntity(
+                request.CustomerId,
+                DateTime.UtcNow.Ticks.ToString(),
+                "*",
+                new Dictionary<string, EntityProperty>
+                {
+                    { "StartLatitude", EntityProperty.GeneratePropertyForDouble(request.StartLocation.Latitude) },
+                    { "StartLongitude", EntityProperty.GeneratePropertyForDouble(request.StartLocation.Longitude) },
+                    { "EndLatitude", EntityProperty.GeneratePropertyForDouble(request.EndLocation.Latitude) },
+                    { "EndLongitude", EntityProperty.GeneratePropertyForDouble(request.EndLocation.Longitude) },
+                    { "Vehicle", EntityProperty.GeneratePropertyForString(vehicleLicenseNumber) }
+                });
+
+            _table.Execute(TableOperation.Insert(entity));
         }
     }
 }
