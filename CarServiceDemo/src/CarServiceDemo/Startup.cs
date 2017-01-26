@@ -37,8 +37,8 @@ namespace CarServiceDemo
             services.AddSingleton<RideManager>(_ => new RideManager(Configuration.GetConnectionString("Storage")));
 
             // Add framework services.
-            services.AddMvc();
             services.AddApplicationInsightsTelemetry(Configuration);
+            services.AddMvc();
             services.AddSwaggerGen();
         }
 
@@ -48,8 +48,6 @@ namespace CarServiceDemo
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseApplicationInsightsRequestTelemetry();
-            app.UseApplicationInsightsExceptionTelemetry();
             app.UseMvc();
             app.UseSwagger();
             app.UseSwaggerUi();
